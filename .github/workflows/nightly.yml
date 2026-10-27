@@ -1,9 +1,9 @@
 name: Nightly
 
 on:
-  schedule:
-    # Every day at 04:00 UTC
-    - cron: "0 4 * * *"
+  # Sent by the AliceVision nightly once its archives are published
+  repository_dispatch:
+    types: [alicevision-nightly]
   workflow_dispatch:
 
 # Cancel any in-progress nightly run if a new one is triggered
@@ -134,3 +134,14 @@ jobs:
             --title "Nightly Build (${{ steps.meta.outputs.build_label }})" \
             --notes-file nightly_release_notes.md \
             --prerelease
+
+      # Trigger the nightly of the projects bundling QtAliceVision
+      # (space-separated "owner/repo" list, token allowed to write their contents)
+      - name: Trigger downstream nightlies
+        if: vars.NIGHTLY_DISPATCH_REPOS != ''
+        env:
+          GH_TOKEN: ${{ secrets.NIGHTLY_DISPATCH_TOKEN }}
+        run: |
+          for REPO in ${{ vars.NIGHTLY_DISPATCH_REPOS }}; do
+            gh api "repos/${REPO}/dispatches" -f event_type=qtalicevision-nightly
+          done
