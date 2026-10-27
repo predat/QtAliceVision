@@ -33,14 +33,15 @@ jobs:
         id: nightly
         env:
           GH_TOKEN: ${{ github.token }}
+          ALICEVISION_REPO: ${{ vars.ALICEVISION_REPO || 'alicevision/AliceVision' }}
         run: |
           set -euo pipefail
-          AV_URL=$(gh release view nightly --repo alicevision/AliceVision --json assets \
+          AV_URL=$(gh release view nightly --repo "${ALICEVISION_REPO}" --json assets \
                    --jq '.assets[] | select(.name | endswith("windows.zip")) | .url')
           # Asset name: AliceVision-nightly-<date>-<short sha>-windows.zip
           AV_SHORT_SHA=$(basename "${AV_URL}" | sed -E 's/^AliceVision-nightly-[0-9]+-([0-9a-f]+)-windows\.zip$/\1/')
-          AV_SHA=$(gh api "repos/alicevision/AliceVision/commits/${AV_SHORT_SHA}" --jq '.sha')
-          gh api "repos/alicevision/AliceVision/contents/.github/workflows/build-windows.yml?ref=${AV_SHA}" \
+          AV_SHA=$(gh api "repos/${ALICEVISION_REPO}/commits/${AV_SHORT_SHA}" --jq '.sha')
+          gh api "repos/${ALICEVISION_REPO}/contents/.github/workflows/build-windows.yml?ref=${AV_SHA}" \
             -H "Accept: application/vnd.github.raw" > av-build-windows.yml
           RUNNER=$(sed -nE 's/^\s*runs-on:\s*(\S+)\s*$/\1/p' av-build-windows.yml | head -n1)
           VCPKG_VERSION=$(sed -nE "s/^\s*VCPKG_VERSION:\s*'?([^' ]+)'?\s*$/\1/p" av-build-windows.yml | head -n1)
