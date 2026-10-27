@@ -30,14 +30,15 @@ jobs:
         id: nightly
         env:
           GH_TOKEN: ${{ github.token }}
+          ALICEVISION_REPO: ${{ vars.ALICEVISION_REPO || 'alicevision/AliceVision' }}
         run: |
           set -euo pipefail
-          AV_URL=$(gh release view nightly --repo alicevision/AliceVision --json assets \
+          AV_URL=$(gh release view nightly --repo "${ALICEVISION_REPO}" --json assets \
                    --jq '.assets[] | select(.name | endswith("linux.tar.gz")) | .url')
           # Asset name: AliceVision-nightly-<date>-<short sha>-linux.tar.gz
           AV_SHORT_SHA=$(basename "${AV_URL}" | sed -E 's/^AliceVision-nightly-[0-9]+-([0-9a-f]+)-linux\.tar\.gz$/\1/')
-          AV_SHA=$(gh api "repos/alicevision/AliceVision/commits/${AV_SHORT_SHA}" --jq '.sha')
-          DEPS_IMAGE=$(gh api "repos/alicevision/AliceVision/contents/.github/workflows/build-linux.yml?ref=${AV_SHA}" \
+          AV_SHA=$(gh api "repos/${ALICEVISION_REPO}/commits/${AV_SHORT_SHA}" --jq '.sha')
+          DEPS_IMAGE=$(gh api "repos/${ALICEVISION_REPO}/contents/.github/workflows/build-linux.yml?ref=${AV_SHA}" \
                        -H "Accept: application/vnd.github.raw" \
                        | sed -nE 's/^\s*image:\s*"?([^"]*alicevision-deps[^"]*)"?\s*$/\1/p' | head -n1)
           echo "AliceVision nightly: ${AV_URL}"
