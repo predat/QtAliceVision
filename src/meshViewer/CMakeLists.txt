@@ -164,6 +164,12 @@ install(TARGETS meshViewer
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/qml/meshViewer
 )
 
+# Embree is only used by this plugin: neither the AliceVision bundle nor Qt provide it
+install(IMPORTED_RUNTIME_ARTIFACTS embree
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/qml/meshViewer
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/qml/meshViewer
+)
+
 # Install the generated qmldir
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/qmldir"
